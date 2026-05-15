@@ -1,0 +1,229 @@
+--- CELL 0
+## Project: AI Based Heart Disease Detection System Using Cardiac MRI - pulse ai
+
+### Environment Setup
+The following cell installs the necessary libraries including TensorFlow for deep learning, OpenCV for image processing, and NiBabel for handling medical imaging formats.
+
+--- CELL 2
+### Google Drive Integration
+Mounting Google Drive allows us to access the ACDC dataset and save trained model weights.
+
+--- CELL 4
+### Directory Verification
+Checking the root directory of the dataset to ensure paths are correctly configured.
+
+--- CELL 6
+### Sub-folder Inspection
+Exploring the specific folders containing training and testing volumes.
+
+--- CELL 8
+### Dataset Statistics
+Iterating through folders to count the number of files available for training and testing.
+
+--- CELL 10
+### File Listing
+Retrieving a sample of filenames from the training slices directory.
+
+--- CELL 12
+### Metadata Extraction
+Opening an HDF5 file to inspect the internal structure, including image shapes and labels.
+
+--- CELL 13
+## AI Based Heart Disease Detection System Using Cardiac MRI - pulse ai
+
+## Step 1: Dataset Preparation ✅
+
+### Dataset: ACDC (Automated Cardiac Diagnosis Challenge)
+- Total Images: 1912 MRI slices
+- Format: HDF5 (.h5)
+- Classes: 5 (NOR, DCM, MINF, RV, HCM)
+- Source: Kaggle (archive 3)
+
+### Folder Structure:
+- ACDC_training_slices → 1912 files
+- ACDC_training_volumes → 200 files
+- ACDC_testing_volumes → 100 files
+
+--- CELL 15
+### Data Visualization
+Plotting a sample MRI slice alongside its corresponding label mask to verify alignment.
+
+--- CELL 17
+### Batch Processing and Normalization
+Loading all training slices, resizing them to a standard 256x256 resolution, and normalizing pixel values to a [0, 1] range.
+
+--- CELL 18
+## AI Based Heart Disease Detection System Using Cardiac MRI - pulse ai
+
+## Step 2: Data Preprocessing ✅
+
+### What we did:
+- Loaded all 1912 MRI images
+- Resized all images to (256, 256)
+- Added channel dimension → (1912, 256, 256, 1)
+- Created disease labels (5 classes)
+- Applied Data Augmentation
+- Saved processed data to Google Drive
+
+### Class Distribution:
+- NOR (Normal) → 400 images
+- DCM (Dilated Cardiomyopathy) → 378 images
+- MINF (Myocardial Infarction) → 346 images
+- RV (Right Ventricle) → 340 images
+- HCM (Hypertrophic) → 448 images
+
+--- CELL 20
+### Channel Alignment
+Reshaping the image array to include the channel dimension required by Convolutional Neural Networks.
+
+--- CELL 22
+### Pixel-Level Analysis
+Analyzing the distribution of unique values within the segmentation masks.
+
+--- CELL 24
+### Volume Data Check
+Inspecting the 3D volume files used for validation and testing.
+
+--- CELL 26
+### Detailed Volume Inspection
+Checking data types and spatial dimensions for the volume datasets.
+
+--- CELL 28
+### Test Set Verification
+Validating the structure of the testing volumes directory.
+
+--- CELL 30
+### Label Mapping Function
+Defining a helper function to map patient IDs to specific cardiac disease categories (NOR, DCM, MINF, RV, HCM).
+
+--- CELL 32
+### Label Generation
+Applying the mapping function across the entire dataset to create the ground truth labels.
+
+--- CELL 34
+### Class Distribution Plot
+Creating a bar chart to visualize the balance of different heart conditions in the dataset.
+
+--- CELL 36
+### Data Augmentation Demo
+Testing rotation and flip transformations to artificially increase dataset diversity.
+
+--- CELL 38
+### Data Persistence
+Saving the processed images and labels as NumPy files for faster loading in future sessions.
+
+--- CELL 40
+### Data Partitioning
+Splitting the data into training (80%) and testing (20%) sets using stratified sampling.
+
+--- CELL 41
+## AI Based Heart Disease Detection System Using Cardiac MRI - pulse ai
+
+## Step 3 & 4: Model Building & Training ✅
+
+### Model Architecture:
+- 4 Convolutional Blocks
+- Batch Normalization after each block
+- 2 Fully Connected layers
+- Dropout for regularization
+- Output: 5 classes (NOR, DCM, MINF, RV, HCM)
+
+### Training Results:
+- Best Validation Accuracy: 66.84%
+- Saved: final_model.keras ✅
+
+--- CELL 43
+### Baseline CNN Model
+Building a custom Convolutional Neural Network from scratch to serve as a performance baseline.
+
+--- CELL 45
+### Optimizer Configuration
+Compiling the model with Adam optimizer and Categorical Crossentropy loss.
+
+--- CELL 47
+### Training Execution
+Training the model with Early Stopping and Model Checkpoint callbacks to prevent overfitting.
+
+--- CELL 49
+### Performance Visualization
+Plotting training vs. validation accuracy and loss curves.
+
+--- CELL 51
+### Detailed Metrics
+Generating a classification report and confusion matrix to identify specific class performance.
+
+--- CELL 53
+### Exporting Results
+Saving the final baseline model and its evaluation report.
+
+--- CELL 55
+### VGG16 Model Initialization
+Leveraging Transfer Learning by loading a pre-trained VGG16 model with a custom classification head.
+
+--- CELL 56
+## AI Based Heart Disease Detection System Using Cardiac MRI - pulse ai
+
+## Step 5: Transfer Learning with VGG16 ✅
+
+### Why Transfer Learning?
+- Pretrained weights from ImageNet
+- Fine-tuned on MRI data
+- Model: VGG16 with custom classification head
+
+--- CELL 58
+### Transfer Learning Training
+Training only the top layers of the VGG16-based model while keeping the base layers frozen.
+
+--- CELL 60
+### VGG16 Evaluation
+Evaluating the VGG16 model performance on the test set.
+
+--- CELL 62
+### VGG16 History Analysis
+Visualizing the learning progress of the Transfer Learning model.
+
+--- CELL 63
+## AI Based Heart Disease Detection System Using Cardiac MRI - pulse ai
+
+## Step 6: Model Evaluation ✅
+
+### Comparison:
+- CNN Accuracy → 67%
+- VGG16 Accuracy → 81% ✅
+
+--- CELL 65
+### Save VGG16 Model
+Storing the VGG16 weights and classification metrics.
+
+--- CELL 67
+### Fine-Tuning Setup
+Unfreezing the final convolutional block of VGG16 to allow for task-specific weight adjustments.
+
+--- CELL 68
+## AI Based Heart Disease Detection System Using Cardiac MRI - pulse ai
+
+## Step 7: Model Improvement - Fine-Tuning VGG16
+
+In this step, we unfreeze the last block of VGG16 to allow the model to learn high-level features specific to our MRI dataset.
+
+--- CELL 70
+### Fine-Tuning Execution
+Training the model with a very low learning rate to refine the features for cardiac MRI.
+
+--- CELL 72
+### Final Model Evaluation
+Reviewing the highly improved accuracy after the fine-tuning process.
+
+--- CELL 73
+## AI Based Heart Disease Detection System Using Cardiac MRI - pulse ai
+
+## Step 8: Fine-Tuning Evaluation and Comparison
+
+--- CELL 75
+### Real-Time Inference
+Providing an interactive interface to upload a local MRI image and get an instant diagnostic prediction.
+
+--- CELL 76
+## AI Based Heart Disease Detection System Using Cardiac MRI - pulse ai
+
+# Testing & Inference

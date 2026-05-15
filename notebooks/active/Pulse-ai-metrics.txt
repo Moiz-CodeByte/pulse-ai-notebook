@@ -1,0 +1,238 @@
+CELL 41
+## AI Based Heart Disease Detection System Using Cardiac MRI - pulse ai
+
+## Step 3 & 4: Model Building & Training ✅
+
+### Model Architecture:
+- 4 Convolutional Blocks
+- Batch Normalization after each block
+- 2 Fully Connected layers
+- Dropout for regularization
+- Output: 5 classes (NOR, DCM, MINF, RV, HCM)
+
+### Training Results:
+- Best Validation Accuracy: 66.84%
+- Saved: final_model.keras ✅
+
+CODE CELL 42
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.utils import to_categorical
+
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(
+    images, disease_labels,
+    test_size=0.2,
+    random_state=42,
+    stratify=disease_labels
+)
+
+# Convert labels to categorical
+y_train_cat = to_categorical(y_train, num_classes=5)
+y_test_cat = to_categorical(y_test, num_classes=5)
+
+print(f"X_train: {X_train.shape}")
+print(f"X_test:  {X_test.shape}")
+print(f"y_train: {y_train_cat.shape}")
+print(f"y_test:  {y_test_cat.shape}")
+
+CODE CELL 48
+from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
+
+# Save best model automatically
+checkpoint = ModelCheckpoint(
+    '/content/drive/MyDrive/pulse-ai/ml_model/models/best_model.h5',
+    monitor='val_accuracy',
+    save_best_only=True,
+    verbose=1
+)
+
+# Stop training if no improvement
+early_stopping = EarlyStopping(
+    monitor='val_accuracy',
+    patience=5,
+    verbose=1
+)
+
+# Train the model
+history = model.fit(
+    X_train, y_train_cat,
+    validation_data=(X_test, y_test_cat),
+    epochs=30,
+    batch_size=32,
+    callbacks=[checkpoint, early_stopping]
+)
+
+CODE CELL 52
+from sklearn.metrics import classification_report, confusion_matrix
+import seaborn as sns
+
+# Get predictions
+y_pred = model.predict(X_test)
+y_pred_classes = np.argmax(y_pred, axis=1)
+y_test_classes = np.argmax(y_test_cat, axis=1)
+
+# Classification report
+class_names = ['NOR', 'DCM', 'MINF', 'RV', 'HCM']
+print(classification_report(y_test_classes, y_pred_classes,
+                            target_names=class_names))
+
+# Confusion matrix
+plt.figure(figsize=(8, 6))
+cm = confusion_matrix(y_test_classes, y_pred_classes)
+sns.heatmap(cm, annot=True, fmt='d',
+            xticklabels=class_names,
+            yticklabels=class_names,
+            cmap='Blues')
+plt.title('Confusion Matrix')
+plt.ylabel('True Label')
+plt.xlabel('Predicted Label')
+plt.show()
+
+CODE CELL 54
+# Save classification report to Drive
+report = classification_report(y_test_classes, y_pred_classes,
+                               target_names=class_names)
+
+save_path = '/content/drive/MyDrive/pulse-ai/ml_model/'
+with open(save_path + 'evaluation_report.txt', 'w') as f:
+    f.write(report)
+
+print("✅ Evaluation report saved!")
+
+# Save final model in keras format
+model.save(save_path + 'models/final_model.keras')
+print("✅ Final model saved!")
+
+CODE CELL 59
+from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
+
+vgg_model.compile(
+    optimizer='adam',
+    loss='categorical_crossentropy',
+    metrics=['accuracy']
+)
+
+# Callbacks
+checkpoint = ModelCheckpoint(
+    '/content/drive/MyDrive/pulse-ai/ml_model/models/best_vgg_model.keras',
+    monitor='val_accuracy',
+    save_best_only=True,
+    verbose=1
+)
+
+early_stopping = EarlyStopping(
+    monitor='val_accuracy',
+    patience=5,
+    verbose=1
+)
+
+# Train
+history_vgg = vgg_model.fit(
+    X_train, y_train_cat,
+    validation_data=(X_test, y_test_cat),
+    epochs=30,
+    batch_size=32,
+    callbacks=[checkpoint, early_stopping]
+)
+
+CODE CELL 61
+# Get predictions
+y_pred_vgg = vgg_model.predict(X_test)
+y_pred_classes_vgg = np.argmax(y_pred_vgg, axis=1)
+y_test_classes = np.argmax(y_test_cat, axis=1)
+
+# Classification report
+class_names = ['NOR', 'DCM', 'MINF', 'RV', 'HCM']
+print(classification_report(y_test_classes, y_pred_classes_vgg,
+                            target_names=class_names))
+
+# Confusion matrix
+plt.figure(figsize=(8, 6))
+cm = confusion_matrix(y_test_classes, y_pred_classes_vgg)
+sns.heatmap(cm, annot=True, fmt='d',
+            xticklabels=class_names,
+            yticklabels=class_names,
+            cmap='Blues')
+plt.title('VGG16 Confusion Matrix')
+plt.ylabel('True Label')
+plt.xlabel('Predicted Label')
+plt.show()
+
+CODE CELL 66
+# Save final VGG16 model
+save_path = '/content/drive/MyDrive/pulse-ai/ml_model/models/'
+
+vgg_model.save(save_path + 'final_vgg_model.keras')
+print("✅ Final VGG16 model saved!")
+
+# Save evaluation report
+report = classification_report(y_test_classes, y_pred_classes_vgg,
+                               target_names=class_names)
+
+with open('/content/drive/MyDrive/pulse-ai/ml_model/vgg_evaluation_report.txt', 'w') as f:
+    f.write(report)
+
+print("✅ Evaluation report saved!")
+
+CODE CELL 71
+# Continue training with fine-tuning
+fine_tune_epochs = 20
+total_epochs = 30 + fine_tune_epochs
+
+checkpoint_ft = ModelCheckpoint(
+    '/content/drive/MyDrive/pulse-ai/ml_model/models/best_vgg_finetuned.keras',
+    monitor='val_accuracy',
+    save_best_only=True,
+    verbose=1
+)
+
+history_fine = vgg_model.fit(
+    X_train, y_train_cat,
+    validation_data=(X_test, y_test_cat),
+    epochs=total_epochs,
+    initial_epoch=history_vgg.epoch[-1],
+    batch_size=32,
+    callbacks=[checkpoint_ft, early_stopping]
+)
+
+CODE CELL 74
+import matplotlib.pyplot as plt
+from sklearn.metrics import classification_report, confusion_matrix
+import seaborn as sns
+import numpy as np
+
+# Get predictions from the fine-tuned model
+y_pred_ft = vgg_model.predict(X_test)
+y_pred_classes_ft = np.argmax(y_pred_ft, axis=1)
+y_test_classes = np.argmax(y_test_cat, axis=1)
+
+# Classification report
+print("Fine-tuned VGG16 Classification Report:")
+print(classification_report(y_test_classes, y_pred_classes_ft, target_names=class_names))
+
+# Plotting combined history
+acc = history_vgg.history['accuracy'] + history_fine.history['accuracy']
+val_acc = history_vgg.history['val_accuracy'] + history_fine.history['val_accuracy']
+loss = history_vgg.history['loss'] + history_fine.history['loss']
+val_loss = history_vgg.history['val_loss'] + history_fine.history['val_loss']
+
+plt.figure(figsize=(12, 6))
+
+plt.subplot(1, 2, 1)
+plt.plot(acc, label='Training Accuracy')
+plt.plot(val_acc, label='Validation Accuracy')
+plt.plot([len(history_vgg.history['accuracy'])-1, len(history_vgg.history['accuracy'])-1],
+         plt.ylim(), label='Start Fine Tuning', linestyle='--')
+plt.title('Accuracy Improvement')
+plt.legend(loc='lower right')
+
+plt.subplot(1, 2, 2)
+plt.plot(loss, label='Training Loss')
+plt.plot(val_loss, label='Validation Loss')
+plt.plot([len(history_vgg.history['loss'])-1, len(history_vgg.history['loss'])-1],
+         plt.ylim(), label='Start Fine Tuning', linestyle='--')
+plt.title('Loss Improvement')
+plt.legend(loc='upper right')
+
+plt.tight_layout()
+plt.show()
